@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useState } from "react";
 import apiRequest from "../../lib/apiRequest";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Register() {
   const [error, setError] = useState("");
@@ -28,7 +30,9 @@ function Register() {
       });
 
       navigate("/login");
+      toast.success("Registered successfully!");
     } catch (err) {
+      toast.error("Failed to register!");
       setError(err.response.data.message);
     } finally {
       setIsLoading(false);

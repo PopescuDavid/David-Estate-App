@@ -5,6 +5,8 @@ import "react-quill/dist/quill.snow.css";
 import apiRequest from "../../lib/apiRequest";
 import UploadWidget from "../../components/uploadWidget/UploadWidget";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function NewPostPage() {
   const [value, setValue] = useState("");
@@ -44,8 +46,11 @@ function NewPostPage() {
           restaurant: parseInt(inputs.restaurant),
         },
       });
+      toast.success("Created post successfully!");
+      console.log(res.data);
       navigate("/"+res.data.id)
     } catch (err) {
+      toast.error("Failed to create post!");
       console.log(err);
       setError(error);
     }
@@ -164,7 +169,7 @@ function NewPostPage() {
         <UploadWidget
           uwConfig={{
             multiple: true,
-            cloudName: "lamadev",
+            cloudName: "dn6rlquxl",
             uploadPreset: "estate",
             folder: "posts",
           }}

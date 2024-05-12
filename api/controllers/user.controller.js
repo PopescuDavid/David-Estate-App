@@ -108,7 +108,7 @@ export const savePost = async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-    res.status(500).json({ message: "Failed to delete users!" });
+    res.status(500).json({ message: "Failed to save post!" });
   }
 };
 
@@ -126,7 +126,18 @@ export const profilePosts = async (req, res) => {
     });
 
     const savedPosts = saved.map((item) => item.post);
-    res.status(200).json({ userPosts, savedPosts });
+
+    const userPostsWithIsSaved = userPosts.map((post) => {
+      const isSaved = savedPosts.some(savedPost => savedPost.id === post.id);
+      return { ...post, isSaved };
+    });
+
+    const savedPostsWithIsSaved = savedPosts.map((post) => {
+      const isSaved = true;
+      return { ...post, isSaved };
+    });
+
+    res.status(200).json({ userPosts: userPostsWithIsSaved, savedPosts: savedPostsWithIsSaved });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to get profile posts!" });

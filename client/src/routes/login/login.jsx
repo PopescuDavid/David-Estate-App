@@ -3,6 +3,8 @@ import "./login.scss";
 import { Link, useNavigate } from "react-router-dom";
 import apiRequest from "../../lib/apiRequest";
 import { AuthContext } from "../../context/AuthContext";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Login() {
   const [error, setError] = useState("");
@@ -30,7 +32,9 @@ function Login() {
       updateUser(res.data)
 
       navigate("/");
+      toast.success("Logged in successfully!");
     } catch (err) {
+      toast.error("Failed to log in!");
       setError(err.response.data.message);
     } finally {
       setIsLoading(false);

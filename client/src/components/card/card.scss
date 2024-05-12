@@ -98,6 +98,35 @@
           }
         }
       }
+      .deleteButton {
+        width: 15%;
+        border-radius: 5px;
+        border: none;
+        background-color: rgb(223, 84, 84);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .deleteButton:hover {
+        background-color: #ff3f3f;
+      }
+      
+      .chatPopup {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000; /* Adjust z-index as needed */
+      }
+      
+      .chatContent {
+        width: 300px; /* Adjust width as needed */
+        background-color: #ffffff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+      }
     }
   }
 }

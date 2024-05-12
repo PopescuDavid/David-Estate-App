@@ -1,0 +1,129 @@
+.contactPage {
+    height: 100vh;
+    overflow-y: auto; 
+    margin-bottom: 100px;
+    
+    .hero {
+      position: relative;
+      height: 0px;
+      background: url('/aboutBackground.jpg') center/cover;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+  
+      .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+  
+      .content {
+        z-index: 1;
+  
+        h1 {
+          font-size: 3rem;
+          margin-bottom: 20px;
+        }
+  
+        p {
+          font-size: 1.2rem;
+        }
+      }
+    }
+  
+    .container {
+        margin-bottom: 50px!important;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+  
+    .contactDetails {
+      background-color: #f8f8f8;
+      padding: 50px 0;
+      margin-bottom: 40px;
+  
+      h2 {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+  
+      .contactInfo {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+  
+        .info {
+          display: flex;
+          align-items: center;
+  
+          img {
+            width: 30px;
+            margin-right: 10px;
+          }
+  
+          p {
+            font-size: 1.1rem;
+          }
+        }
+      }
+    }
+  
+    .contactForm {
+      background-color: #f8f8f8;
+      padding: 50px 0;
+      margin-bottom: 40px;
+  
+      h2 {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+  
+      form {
+        max-width: 600px;
+        margin: 0 auto;
+  
+        .formGroup {
+          margin-bottom: 20px;
+  
+          label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+          }
+  
+          input[type="text"],
+          input[type="email"],
+          textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+          }
+  
+          textarea {
+            height: 150px;
+          }
+        }
+  
+        button[type="submit"] {
+          display: block;
+          width: 100%;
+          padding: 10px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          font-size: 1rem;
+          cursor: pointer;
+        }
+      }
+    }
+  }
+  

@@ -3,16 +3,25 @@ import Slider from "../../components/slider/Slider";
 import Map from "../../components/map/Map";
 import { useNavigate, useLoaderData } from "react-router-dom";
 import DOMPurify from "dompurify";
-import { useContext, useState } from "react";
+import { useContext, useState, useRef, useEffect } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import apiRequest from "../../lib/apiRequest";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useNotificationStore } from "../../lib/notificationStore";
+import { format } from "timeago.js";
+import { SocketContext } from "../../context/SocketContext";
 
 function SinglePage() {
+  const [chat, setChat] = useState(null);
+  const [chats, setChats] = useState([]);
   const post = useLoaderData();
   const [saved, setSaved] = useState(post.isSaved);
   const { currentUser } = useContext(AuthContext);
+  const { socket } = useContext(SocketContext);
+  const messageEndRef = useRef();
   const navigate = useNavigate();
-
+  console.log(post);
   const handleSave = async () => {
     if (!currentUser) {
       navigate("/login");
@@ -21,11 +30,88 @@ function SinglePage() {
     setSaved((prev) => !prev);
     try {
       await apiRequest.post("/users/save", { postId: post.id });
+
+      toast.success("Saved place successfully!");
     } catch (err) {
+      toast.error("Failed to save place!");
       console.log(err);
       setSaved((prev) => !prev);
     }
   };
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        const response = await apiRequest("/chats/");
+        setChats(response.data);
+      } catch (error) {
+        console.error("Error fetching chats:", error);
+        // Handle error fetching chats
+      }
+    };
+
+    fetchChats();
+  }, []);
+
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chat]);
+
+  const decrease = useNotificationStore((state) => state.decrease);
+
+  const handleOpenChat = async (id, receiver) => {
+    try {
+      const res = await apiRequest("/chats/" + id);
+      if (!res.data.seenBy.includes(currentUser.id)) {
+        decrease();
+      }
+      setChat({ ...res.data, receiver });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const text = formData.get("text");
+
+    if (!text) return;
+    try {
+      const res = await apiRequest.post("/messages/" + chat.id, { text });
+      setChat((prev) => ({ ...prev, messages: [...prev.messages, res.data] }));
+      e.target.reset();
+      socket.emit("sendMessage", {
+        receiverId: chat.receiver.id,
+        data: res.data,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    const read = async () => {
+      try {
+        await apiRequest.put("/chats/read/" + chat.id);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    if (chat && socket) {
+      socket.on("getMessage", (data) => {
+        if (chat.id === data.chatId) {
+          setChat((prev) => ({ ...prev, messages: [...prev.messages, data] }));
+          read();
+        }
+      });
+    }
+    return () => {
+      socket.off("getMessage");
+    };
+  }, [socket, chat]);
 
   return (
     <div className="singlePage">
@@ -49,6 +135,7 @@ function SinglePage() {
             </div>
             <div
               className="bottom"
+              style={{ marginBottom: "50px"}}
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(post.postDetail.desc),
               }}
@@ -139,14 +226,27 @@ function SinglePage() {
             <Map items={[post]} />
           </div>
           <div className="buttons">
-            <button>
-              <img src="/chat.png" alt="" />
-              Send a Message
-            </button>
+            {currentUser && post.userId !== currentUser.id && chats.map((chat) => {
+              const isCurrentUserPartOfChat =
+                chat.userIDs.includes(post.userId) &&
+                chat.userIDs.includes(currentUser.id);
+
+              if (isCurrentUserPartOfChat) {
+                return (
+                  <button onClick={() => handleOpenChat(chat.id, chat.receiver)} key={chat.id}>
+                    <img src="/chat.png" alt="" />
+                    Send a Message
+                  </button>
+                );
+              } else {
+                return null;
+              }
+            })}
             <button
               onClick={handleSave}
               style={{
                 backgroundColor: saved ? "#fece51" : "white",
+                marginBottom: "40px"
               }}
             >
               <img src="/save.png" alt="" />
@@ -155,6 +255,43 @@ function SinglePage() {
           </div>
         </div>
       </div>
+      {chat && (
+        <div className="chatBox">
+          <div className="top">
+            <div className="user">
+              <img src={chat.receiver.avatar || "noavatar.jpg"} alt="" />
+              {chat.receiver.username}
+            </div>
+            <span className="close" onClick={() => setChat(null)}>
+              X
+            </span>
+          </div>
+          <div className="center">
+            {chat.messages.map((message) => (
+              <div
+                className="chatMessage"
+                style={{
+                  alignSelf:
+                    message.userId === currentUser.id
+                      ? "flex-end"
+                      : "flex-start",
+                  textAlign:
+                    message.userId === currentUser.id ? "right" : "left",
+                }}
+                key={message.id}
+              >
+                <p>{message.text}</p>
+                <span>{format(message.createdAt)}</span>
+              </div>
+            ))}
+            <div ref={messageEndRef}></div>
+          </div>
+          <form onSubmit={handleSubmit} className="bottom">
+            <textarea name="text"></textarea>
+            <button>Send</button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

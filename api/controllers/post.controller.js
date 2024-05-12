@@ -18,9 +18,41 @@ export const getPosts = async (req, res) => {
       },
     });
 
-    // setTimeout(() => {
-    res.status(200).json(posts);
-    // }, 3000);
+    const token = req.cookies?.token;
+
+    if (token) {
+      jwt.verify(token, process.env.JWT_SECRET_KEY, async (err, payload) => {
+        if (!err) {
+          const savedPosts = await prisma.savedPost.findMany({
+            where: {
+              userId: payload.id,
+              postId: {
+                in: posts.map(post => post.id),
+              },
+            },
+          });
+
+          const savedPostsMap = savedPosts.reduce((acc, savedPost) => {
+            acc[savedPost.postId] = true;
+            return acc;
+          }, {});
+
+          const postsWithSavedFlag = posts.map(post => ({
+            ...post,
+            isSaved: savedPostsMap[post.id] || false,
+          }));
+
+          res.status(200).json(postsWithSavedFlag);
+        }
+      });
+    } else {
+      const postsWithoutSavedFlag = posts.map(post => ({
+        ...post,
+        isSaved: false,
+      }));
+
+      res.status(200).json(postsWithoutSavedFlag);
+    }
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to get posts" });
@@ -56,11 +88,12 @@ export const getPost = async (req, res) => {
               },
             },
           });
-          res.status(200).json({ ...post, isSaved: saved ? true : false });
+          res.status(200).json({ ...post, isSaved: saved ? true : false }); // Send response inside the jwt.verify callback
         }
       });
+    } else {
+      res.status(200).json({ ...post, isSaved: false }); // Send response outside of the if (token) block
     }
-    res.status(200).json({ ...post, isSaved: false });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Failed to get post" });
@@ -104,14 +137,38 @@ export const deletePost = async (req, res) => {
   try {
     const post = await prisma.post.findUnique({
       where: { id },
+      include: {
+        postDetail: true,
+        savedPosts: true
+      }
     });
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
 
     if (post.userId !== tokenUserId) {
       return res.status(403).json({ message: "Not Authorized!" });
     }
 
+    // Delete the associated SavedPosts first
+    if (post.savedPosts.length > 0) {
+      await Promise.all(post.savedPosts.map(async (savedPost) => {
+        await prisma.savedPost.delete({
+          where: { id: savedPost.id }
+        });
+      }));
+    }
+
+    // Delete the associated PostDetail if it exists
+    if (post.postDetail) {
+      await prisma.postDetail.delete({
+        where: { id: post.postDetail.id }
+      });
+    }
+
     await prisma.post.delete({
-      where: { id },
+      where: { id }
     });
 
     res.status(200).json({ message: "Post deleted" });
@@ -120,3 +177,5 @@ export const deletePost = async (req, res) => {
     res.status(500).json({ message: "Failed to delete post" });
   }
 };
+
+

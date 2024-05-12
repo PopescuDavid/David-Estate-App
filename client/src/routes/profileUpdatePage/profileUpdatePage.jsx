@@ -4,6 +4,8 @@ import { AuthContext } from "../../context/AuthContext";
 import apiRequest from "../../lib/apiRequest";
 import { useNavigate } from "react-router-dom";
 import UploadWidget from "../../components/uploadWidget/UploadWidget";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function ProfileUpdatePage() {
   const { currentUser, updateUser } = useContext(AuthContext);
@@ -26,9 +28,11 @@ function ProfileUpdatePage() {
         avatar:avatar[0]
       });
       updateUser(res.data);
+      toast.success("Updated profile successfully!");
       navigate("/profile");
     } catch (err) {
       console.log(err);
+      toast.error("Failed to update profile!");
       setError(err.response.data.message);
     }
   };
@@ -68,7 +72,7 @@ function ProfileUpdatePage() {
         <img src={avatar[0] || currentUser.avatar || "/noavatar.jpg"} alt="" className="avatar" />
         <UploadWidget
           uwConfig={{
-            cloudName: "lamadev",
+            cloudName: "dn6rlquxl",
             uploadPreset: "estate",
             multiple: false,
             maxImageFileSize: 2000000,

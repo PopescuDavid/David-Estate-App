@@ -1,7 +1,59 @@
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import "./card.scss";
+import apiRequest from "../../lib/apiRequest";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-function Card({ item }) {
+function Card({ item, onDelete }) {
+  const [error, setError] = useState("");
+  const { currentUser } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [saved, setSaved] = useState(item.isSaved);
+
+  const handleSubmit = async (postId) => {
+    if (!currentUser) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      await apiRequest.delete(`/posts/${postId}`);
+      onDelete(postId);
+      toast.success("Post deleted successfully!");
+    } catch (err) {
+      toast.error("Failed to delete post!");
+      console.log(err);
+      setError(error);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!currentUser) {
+      navigate("/login");
+    }
+
+    setSaved((prev) => !prev);
+    try {
+      await apiRequest.post("/users/save", { postId: item.id });
+
+      if(!saved){
+        setSaved(true);
+        toast.success("Saved place successfully!");
+      }
+      else{
+        setSaved(false);
+        toast.success("Unsaved place!");
+      }
+    } catch (err) {
+      toast.error("Failed to save place!");
+      console.log(err);
+      setSaved((prev) => !prev);
+    }
+  };
+
   return (
     <div className="card">
       <Link to={`/${item.id}`} className="imageContainer">
@@ -29,12 +81,27 @@ function Card({ item }) {
           </div>
           <div className="icons">
             <div className="icon">
-              <img src="/save.png" alt="" />
+              <button
+                onClick={handleSave}
+                style={{
+                  backgroundColor: saved ? "#fece51" : "none",
+                  cursor: "pointer"
+                }}
+              >
+                <img src="/save.png" alt="" />
+              </button>
             </div>
             <div className="icon">
               <img src="/chat.png" alt="" />
             </div>
           </div>
+          {currentUser && (
+            currentUser.id === item.userId && (
+              <button className="deleteButton" onClick={() => handleSubmit(item.id)}>
+                Remove
+              </button>
+            )
+          )}
         </div>
       </div>
     </div>

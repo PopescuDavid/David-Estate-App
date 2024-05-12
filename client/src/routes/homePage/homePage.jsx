@@ -13,10 +13,7 @@ function HomePage() {
         <div className="wrapper">
           <h1 className="title">Find Real Estate & Get Your Dream Place</h1>
           <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Eos
-            explicabo suscipit cum eius, iure est nulla animi consequatur
-            facilis id pariatur fugit quos laudantium temporibus dolor ea
-            repellat provident impedit!
+            Discover your perfect home with our expert guidance and extensive listings. Whether you are seeking a cozy apartment or a spacious family house, we are here to make your real estate journey seamless and enjoyable.
           </p>
           <SearchBar />
           <div className="boxes">
@@ -26,11 +23,11 @@ function HomePage() {
             </div>
             <div className="box">
               <h1>200</h1>
-              <h2>Award Gained</h2>
+              <h2>Awards Gained</h2>
             </div>
             <div className="box">
               <h1>2000+</h1>
-              <h2>Property Ready</h2>
+              <h2>Properties Ready</h2>
             </div>
           </div>
         </div>
@@ -39,7 +36,7 @@ function HomePage() {
         <img src="/bg.png" alt="" />
       </div>
     </div>
-  );
+  );  
 }
 
 export default HomePage;

@@ -5,12 +5,14 @@ import apiRequest from "../../lib/apiRequest";
 import { format } from "timeago.js";
 import { SocketContext } from "../../context/SocketContext";
 import { useNotificationStore } from "../../lib/notificationStore";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Chat({ chats }) {
   const [chat, setChat] = useState(null);
   const { currentUser } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
-
+  const [chatList, setChatList] = useState(chats);
   const messageEndRef = useRef();
 
   const decrease = useNotificationStore((state) => state.decrease);
@@ -28,6 +30,22 @@ function Chat({ chats }) {
       setChat({ ...res.data, receiver });
     } catch (err) {
       console.log(err);
+    }
+  };
+
+  const updateChatDeleteRealTime = (id) => {
+    const updatedList = chatList.filter((chat) => chat.id !== id);
+    setChatList(updatedList);
+  };
+
+  const handleDeleteChat = async (id) => {
+    try {
+      await apiRequest.delete("/chats/" + id);
+      updateChatDeleteRealTime(id);
+      toast.success("Chat deleted successfully!");
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to delete chat!");
     }
   };
 
@@ -77,7 +95,7 @@ function Chat({ chats }) {
     <div className="chat">
       <div className="messages">
         <h1>Messages</h1>
-        {chats?.map((c) => (
+        {chatList?.map((c) => (
           <div
             className="message"
             key={c.id}
@@ -90,8 +108,12 @@ function Chat({ chats }) {
             onClick={() => handleOpenChat(c.id, c.receiver)}
           >
             <img src={c.receiver.avatar || "/noavatar.jpg"} alt="" />
-            <span>{c.receiver.username}</span>
-            <p>{c.lastMessage}</p>
+            <span style={{ marginLeft: '5px' }} >{c.receiver.username}</span>
+            <p style={{ marginLeft: '10px' }}>{c.lastMessage}</p>
+            <button className="deleteButton" onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteChat(c.id);
+            }}>Delete</button>
           </div>
         ))}
       </div>
